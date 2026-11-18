@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>תאריך עברי היום והמרת תאריכים | FizzleKit</title>
+  <meta name="description" content="התאריך העברי של היום, המרה מתאריך לועזי לעברי ובחזרה. חינם, בלי הרשמה, והכול רץ בדפדפן.">
+  <style>
+    body{margin:0;background:#fffaf0;color:#222;font:18px/1.6 system-ui,-apple-system,sans-serif}
+    main{max-width:640px;margin:0 auto;padding:24px 16px}
+    h1{font-size:28px;margin:0 0 4px} h2{font-size:20px;margin:28px 0 8px}
+    .big{background:#fff;border:1px solid #eee;border-radius:12px;padding:16px;text-align:center}
+    .big b{display:block;font-size:34px;color:#c0397a} .big span{color:#666}
+    input,select{font-size:18px;padding:8px;border:2px solid #f4a;border-radius:8px;margin:4px 0}
+    .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+    .out{margin-top:8px;font-size:22px;font-weight:600}
+    footer{margin-top:28px;font-size:13px;color:#888}
+  </style>
+</head>
+<body>
+<main>
+  <h1>תאריך עברי היום</h1>
+  <div class="big"><b id="today-l"></b><span id="today-n"></span><br><span id="today-g"></span></div>
+
+  <h2>מתאריך לועזי לעברי</h2>
+  <div class="row"><input type="date" id="g-in"></div>
+  <div class="out" id="g-out"></div>
+
+  <h2>מתאריך עברי ללועזי</h2>
+  <div class="row">
+    <input type="number" id="h-year" min="5600" max="6100" style="width:100px" aria-label="שנה">
+    <select id="h-month" aria-label="חודש"></select>
+    <input type="number" id="h-day" min="1" max="30" style="width:70px" aria-label="יום">
+  </div>
+  <div class="out" id="h-out"></div>
+  <p style="font-size:14px;color:#666">היום העברי מתחלף בשקיעה. התאריך כאן הוא לפי חצות הלילה.</p>
+  <p><a href="index.html">מחשבון גימטריה</a></p>
+  <footer>החישוב מתבצע בדפדפן שלכם. שום דבר לא נשלח ולא נשמר. FizzleKit.</footer>
+</main>
+<script src="hebdate.js"></script>
+<script>
+  const $ = (id) => document.getElementById(id);
+  const heDate = new Intl.DateTimeFormat('he-IL', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+  const now = new Date();
+  const t = hebdate.toHebrew(now);
+  $('today-l').textContent = t.letters; $('today-n').textContent = t.text; $('today-g').textContent = heDate.format(now);
+
+  const iso = (d) => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  $('g-in').value = iso(now);
+  function fromG() {
+    const v = $('g-in').value; if (!v) { $('g-out').textContent = ''; return; }
+    const [y, m, d] = v.split('-').map(Number);
+    const h = hebdate.toHebrew(new Date(y, m - 1, d));
+    $('g-out').textContent = h.letters + ' (' + h.text + ')';
+  }
+  $('g-in').addEventListener('input', fromG); fromG();
+
+  $('h-year').value = t.year; $('h-day').value = t.day;
+  function fillMonths() {
+    const y = Number($('h-year').value); const keep = $('h-month').value;
+    $('h-month').innerHTML = '';
+    if (!y) return;
+    for (const m of hebdate.monthsOfYear(y)) { const o = document.createElement('option'); o.value = o.textContent = m; $('h-month').appendChild(o); }
+    $('h-month').value = keep || t.month;
+  }
+  function fromH() {
+    const d = hebdate.toGregorian(Number($('h-year').value), $('h-month').value, $('h-day').value);
+    $('h-out').textContent = d ? heDate.format(d) : 'תאריך לא קיים';
+  }
+  $('h-year').addEventListener('input', () => { fillMonths(); fromH(); });
+  $('h-month').addEventListener('change', fromH); $('h-day').addEventListener('input', fromH);
+  fillMonths(); $('h-month').value = t.month; fromH();
+</script>
+</body>
+</html>
